@@ -44,9 +44,9 @@ class MenuTests(unittest.TestCase):
              patch('recognition.FaceIdentity',return_value=Mock(database={})), \
              patch('recognition.enroll_face',side_effect=lambda args:(events.append(('face',args.register)) or True)), \
              patch('safe_app.run_safe',side_effect=lambda args:events.append(('pattern',args.safe_number))), \
-             patch('builtins.input',side_effect=['1','4','bob','2','0']),patch('builtins.print'):
+             patch('builtins.input',side_effect=['1','3','bob','2','0']),patch('builtins.print'):
             run_menu(self.args)
-        self.assertEqual(events,[('face','bob'),('pattern',4)])
+        self.assertEqual(events,[('face','bob'),('pattern',3)])
 
     def test_canceled_face_enrollment_does_not_start_pattern(self):
         with patch('recognition.ROOT',self.root), \

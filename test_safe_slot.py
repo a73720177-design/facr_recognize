@@ -112,13 +112,29 @@ class SlotTests(unittest.TestCase):
             with self.store.face_registration('alice'):pass
 
     def test_invalid_number_rejected(self):
-        for number in (0,5,-1):
+        for number in (0,4,5,-1):
             with self.assertRaises(ValueError):SafeSlotStore(self.path,number)
 
     def test_number_prompt_rejects_invalid_choices(self):
         from safe_app import prompt_slot
-        with patch('builtins.input',side_effect=['0','5','abc','3']),patch('builtins.print'):
+        with patch('builtins.input',side_effect=['0','4','5','abc','3']),patch('builtins.print'):
             self.assertEqual(prompt_slot(self.store),3)
+
+    def test_only_three_spaces_are_available(self):
+        self.assertEqual(set(self.store.read_all()),{1,2,3})
+
+    def test_legacy_fourth_space_preserved_but_not_selectable(self):
+        entries={str(i):self.store._empty() for i in range(1,5)}
+        entries['4']={'version':1,'revision':'old-four','owner':'bob','samples':self.samples}
+        self.path.write_text(json.dumps({'version':2,'slots':entries}))
+        self.assertEqual(set(self.store.read_all()),{1,2,3})
+        self.assertIsNone(self.store.user_slot('bob'))
+        self.store.load_for('alice');self.store.save('alice',self.samples)
+        saved=json.loads(self.path.read_text())
+        self.assertEqual(set(saved['slots']),{'1','2','3'})
+        self.assertEqual(saved['retired_slots']['4'],entries['4'])
+        self.store.reset('alice',unlocked=True)
+        self.assertEqual(json.loads(self.path.read_text())['retired_slots']['4'],entries['4'])
 
     def test_face_registration_blocked_until_reset(self):
         with self.store.face_registration():pass

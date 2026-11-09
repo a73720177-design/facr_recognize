@@ -7,11 +7,11 @@ import uuid
 
 
 class SafeSlotStore:
-    SLOT_COUNT=4
+    SLOT_COUNT=3
 
     def __init__(self,path,slot_number=1):
         if slot_number not in range(1,self.SLOT_COUNT+1):
-            raise ValueError('금고 번호는 1~4여야 합니다')
+            raise ValueError('금고 번호는 1~3이어야 합니다')
         self.path=Path(path)
         self.slot_number=slot_number
         self.expected_revision=None
@@ -43,9 +43,12 @@ class SafeSlotStore:
                 # The old single compartment is always safe number 1.
                 slots['1']=data
             elif data.get('version')==2 and isinstance(data.get('slots'),dict):
-                if set(data['slots'])!=set(slots):
+                keys=set(data['slots'])
+                if keys not in (set(slots),set(slots)|{'4'}):
                     raise ValueError('금고 번호 목록이 올바르지 않습니다')
-                slots=data['slots']
+                if '4' in data['slots']:
+                    self._validate(data['slots']['4'])
+                slots={key:data['slots'][key] for key in slots}
             else:
                 raise ValueError('금고 목록 파일이 손상되었습니다')
         owners=[]
@@ -82,7 +85,14 @@ class SafeSlotStore:
         slots=self.read_all()
         data={'version':1,'revision':uuid.uuid4().hex,'owner':owner,'samples':samples}
         slots[number]=data
+        retired={}
+        if self.path.exists():
+            original=json.loads(self.path.read_text(encoding='utf-8'))
+            retired=original.get('retired_slots',{}).copy()
+            if '4' in original.get('slots',{}):
+                retired['4']=original['slots']['4']
         registry={'version':2,'slots':{str(key):value for key,value in slots.items()}}
+        if retired:registry['retired_slots']=retired
         temporary=self.path.with_suffix('.tmp')
         try:
             temporary.write_text(json.dumps(registry,ensure_ascii=False),encoding='utf-8')
