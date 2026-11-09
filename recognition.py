@@ -129,7 +129,7 @@ def main():
     parser.add_argument('--no-mirror',action='store_true')
     parser.add_argument('--register',help='등록할 사용자 이름. S로 얼굴 저장')
     parser.add_argument('--safe-mode',choices=('enroll','verify'))
-    parser.add_argument('--safe-number',type=int,choices=range(1,5),help='사용할 금고 번호 1~4 (생략 시 터미널 선택)')
+    parser.add_argument('--safe-number',type=int,choices=range(1,SafeSlotStore.SLOT_COUNT+1),help='사용할 금고 번호 1~3 (생략 시 터미널 선택)')
     parser.add_argument('--face-threshold',type=float,default=.45)
     parser.add_argument('--pattern-tolerance',type=float,default=.23)
     parser.add_argument('--self-test',action='store_true')

@@ -41,10 +41,10 @@ def prompt_slot(store):
     for number,data in store.read_all().items():
         print(f'{number}번: '+('사용 중' if data['owner'] else '비어 있음'))
     while True:
-        try:value=input('사용할 금고 번호 (1~4): ').strip()
+        try:value=input('사용할 금고 번호 (1~3): ').strip()
         except EOFError:raise RuntimeError('금고 번호를 입력하거나 --safe-number 옵션을 지정하세요')
-        if value in ('1','2','3','4'):return int(value)
-        print('1~4 중 하나를 입력하세요.')
+        if value in ('1','2','3'):return int(value)
+        print('1~3 중 하나를 입력하세요.')
 
 
 def run_safe(args):
